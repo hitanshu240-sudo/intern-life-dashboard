@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Flame, LogOut, Plus, Calendar, TrendingUp } from "lucide-react";
+import { Flame, LogOut, Plus, Calendar, TrendingUp, Edit2 } from "lucide-react";
 import { weeklyCheckInAPI } from "@/lib/api";
 import { format } from "date-fns";
 
@@ -13,6 +13,7 @@ export default function CheckInsPage() {
   const [currentCheckIn, setCurrentCheckIn] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingCheckInId, setEditingCheckInId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     learnings: [""],
     tasks: [""],
@@ -69,6 +70,20 @@ export default function CheckInsPage() {
     setFormData({ ...formData, [field]: updatedArray });
   };
 
+  const handleEditCheckIn = (checkIn: any) => {
+    setEditingCheckInId(checkIn._id);
+    setFormData({
+      learnings: checkIn.learnings.length > 0 ? checkIn.learnings : [""],
+      tasks: checkIn.tasks.length > 0 ? checkIn.tasks : [""],
+      wins: checkIn.wins.length > 0 ? checkIn.wins : [""],
+      struggles: checkIn.struggles.length > 0 ? checkIn.struggles : [""],
+      learningScore: checkIn.learningScore,
+      productivityScore: checkIn.productivityScore,
+      disciplineScore: checkIn.disciplineScore,
+    });
+    setShowForm(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -82,17 +97,41 @@ export default function CheckInsPage() {
         disciplineScore: formData.disciplineScore,
       };
 
-      if (currentCheckIn) {
-        await weeklyCheckInAPI.update(currentCheckIn._id, cleanedData);
+      if (editingCheckInId) {
+        await weeklyCheckInAPI.update(editingCheckInId, cleanedData);
       } else {
         await weeklyCheckInAPI.create(cleanedData);
       }
 
       await fetchCheckIns();
       setShowForm(false);
+      setEditingCheckInId(null);
+      setFormData({
+        learnings: [""],
+        tasks: [""],
+        wins: [""],
+        struggles: [""],
+        learningScore: 5,
+        productivityScore: 5,
+        disciplineScore: 5,
+      });
     } catch (error: any) {
       alert(error.response?.data?.message || "Failed to save check-in");
     }
+  };
+
+  const handleCancelEdit = () => {
+    setShowForm(false);
+    setEditingCheckInId(null);
+    setFormData({
+      learnings: [""],
+      tasks: [""],
+      wins: [""],
+      struggles: [""],
+      learningScore: 5,
+      productivityScore: 5,
+      disciplineScore: 5,
+    });
   };
 
   const handleLogout = () => {
@@ -160,7 +199,7 @@ export default function CheckInsPage() {
       <main className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold text-gray-900">Weekly Check-ins</h2>
-          {!currentCheckIn && (
+          {!currentCheckIn && !showForm && (
             <button
               onClick={() => setShowForm(!showForm)}
               className="flex items-center space-x-2 bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700"
@@ -175,7 +214,7 @@ export default function CheckInsPage() {
         {showForm && (
           <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200 mb-8">
             <h3 className="text-xl font-semibold text-gray-900 mb-6">
-              Create Weekly Check-in
+              {editingCheckInId ? "Edit Check-in" : "Create Weekly Check-in"}
             </h3>
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Learnings */}
@@ -385,11 +424,11 @@ export default function CheckInsPage() {
                   type="submit"
                   className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 font-semibold"
                 >
-                  Save Check-in
+                  {editingCheckInId ? "Update Check-in" : "Save Check-in"}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
+                  onClick={handleCancelEdit}
                   className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 font-semibold"
                 >
                   Cancel
@@ -400,7 +439,7 @@ export default function CheckInsPage() {
         )}
 
         {/* Current Week Check-in */}
-        {currentCheckIn && (
+        {currentCheckIn && !showForm && (
           <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-8 mb-8 border border-indigo-100">
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -415,11 +454,19 @@ export default function CheckInsPage() {
                   )}
                 </p>
               </div>
-              <div className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-2 rounded-lg">
-                <TrendingUp className="w-5 h-5" />
-                <span className="font-bold text-lg">
-                  {currentCheckIn.overallScore}/10
-                </span>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => handleEditCheckIn(currentCheckIn)}
+                  className="flex items-center space-x-2 bg-white text-indigo-600 px-4 py-2 rounded-lg hover:bg-indigo-50 border border-indigo-200"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </button>
+                <div className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-2 rounded-lg">
+                  <TrendingUp className="w-5 h-5" />
+                  <span className="font-bold text-lg">
+                    {currentCheckIn.overallScore}/10
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -525,11 +572,19 @@ export default function CheckInsPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-indigo-600">
-                      {checkIn.overallScore}/10
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={() => handleEditCheckIn(checkIn)}
+                      className="flex items-center space-x-1 text-indigo-600 hover:text-indigo-700 px-3 py-1 rounded-lg hover:bg-indigo-50"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-indigo-600">
+                        {checkIn.overallScore}/10
+                      </div>
+                      <div className="text-xs text-gray-500">Overall Score</div>
                     </div>
-                    <div className="text-xs text-gray-500">Overall Score</div>
                   </div>
                 </div>
 
