@@ -56,7 +56,21 @@ export const createWeeklyCheckIn = async (
 ): Promise<void> => {
   try {
     const userId = req.userId!;
-    const { learnings, tasks, wins, struggles, learningScore, productivityScore, disciplineScore } = req.body;
+    const {
+      learnings,
+      tasks,
+      wins,
+      struggles,
+      learningScore,
+      productivityScore,
+      disciplineScore,
+      // Life Reflection fields
+      energyLevel,
+      biggestTimeWaste,
+      stressLevel,
+      motivationLevel,
+      confidenceLevel
+    } = req.body;
 
     const { weekStart, weekEnd } = getWeekBoundaries(new Date());
 
@@ -82,6 +96,12 @@ export const createWeeklyCheckIn = async (
       learningScore,
       productivityScore,
       disciplineScore,
+      // Life Reflection fields
+      energyLevel,
+      biggestTimeWaste,
+      stressLevel,
+      motivationLevel,
+      confidenceLevel,
     });
 
     await checkIn.save();
@@ -104,7 +124,21 @@ export const updateWeeklyCheckIn = async (
   try {
     const userId = req.userId!;
     const { id } = req.params;
-    const { learnings, tasks, wins, struggles, learningScore, productivityScore, disciplineScore } = req.body;
+    const {
+      learnings,
+      tasks,
+      wins,
+      struggles,
+      learningScore,
+      productivityScore,
+      disciplineScore,
+      // Life Reflection fields
+      energyLevel,
+      biggestTimeWaste,
+      stressLevel,
+      motivationLevel,
+      confidenceLevel
+    } = req.body;
 
     const checkIn = await WeeklyCheckIn.findOne({ _id: id, userId });
 
@@ -121,6 +155,13 @@ export const updateWeeklyCheckIn = async (
     if (learningScore !== undefined) checkIn.learningScore = learningScore;
     if (productivityScore !== undefined) checkIn.productivityScore = productivityScore;
     if (disciplineScore !== undefined) checkIn.disciplineScore = disciplineScore;
+    
+    // Update Life Reflection fields
+    if (energyLevel !== undefined) checkIn.energyLevel = energyLevel;
+    if (biggestTimeWaste !== undefined) checkIn.biggestTimeWaste = biggestTimeWaste;
+    if (stressLevel !== undefined) checkIn.stressLevel = stressLevel;
+    if (motivationLevel !== undefined) checkIn.motivationLevel = motivationLevel;
+    if (confidenceLevel !== undefined) checkIn.confidenceLevel = confidenceLevel;
 
     await checkIn.save();
 

@@ -22,6 +22,12 @@ export default function CheckInsPage() {
     learningScore: 5,
     productivityScore: 5,
     disciplineScore: 5,
+    // Life Reflection fields
+    energyLevel: "good" as "bad" | "okay" | "good" | "productive",
+    biggestTimeWaste: "",
+    stressLevel: 5,
+    motivationLevel: 5,
+    confidenceLevel: 5,
   });
 
   useEffect(() => {
@@ -39,6 +45,7 @@ export default function CheckInsPage() {
         weeklyCheckInAPI.getCurrent(),
         weeklyCheckInAPI.getAll(10),
       ]);
+
       setCurrentCheckIn(currentRes.data.checkIn);
       setCheckIns(allRes.data.checkIns);
     } catch (error) {
@@ -80,12 +87,22 @@ export default function CheckInsPage() {
       learningScore: checkIn.learningScore,
       productivityScore: checkIn.productivityScore,
       disciplineScore: checkIn.disciplineScore,
+      energyLevel: checkIn.energyLevel || "good",
+      biggestTimeWaste: checkIn.biggestTimeWaste || "",
+      stressLevel: checkIn.stressLevel || 5,
+      motivationLevel: checkIn.motivationLevel || 5,
+      confidenceLevel: checkIn.confidenceLevel || 5,
     });
     setShowForm(true);
+    // Scroll to top after a brief delay to let the form render
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 100);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Form submitted, editingCheckInId:", editingCheckInId);
     try {
       const cleanedData = {
         learnings: formData.learnings.filter((l) => l.trim()),
@@ -95,14 +112,25 @@ export default function CheckInsPage() {
         learningScore: formData.learningScore,
         productivityScore: formData.productivityScore,
         disciplineScore: formData.disciplineScore,
+        energyLevel: formData.energyLevel,
+        biggestTimeWaste: formData.biggestTimeWaste,
+        stressLevel: formData.stressLevel,
+        motivationLevel: formData.motivationLevel,
+        confidenceLevel: formData.confidenceLevel,
       };
 
       if (editingCheckInId) {
-        await weeklyCheckInAPI.update(editingCheckInId, cleanedData);
+        console.log("Updating check-in with ID:", editingCheckInId);
+        const response = await weeklyCheckInAPI.update(
+          editingCheckInId,
+          cleanedData,
+        );
+        console.log("Update response:", response);
       } else {
-        await weeklyCheckInAPI.create(cleanedData);
+        console.log("Creating new check-in");
+        const response = await weeklyCheckInAPI.create(cleanedData);
+        console.log("Create response:", response);
       }
-
       await fetchCheckIns();
       setShowForm(false);
       setEditingCheckInId(null);
@@ -114,8 +142,15 @@ export default function CheckInsPage() {
         learningScore: 5,
         productivityScore: 5,
         disciplineScore: 5,
+        energyLevel: "good",
+        biggestTimeWaste: "",
+        stressLevel: 5,
+        motivationLevel: 5,
+        confidenceLevel: 5,
       });
     } catch (error: any) {
+      console.error("Error saving check-in:", error);
+      console.error("Error response:", error.response);
       alert(error.response?.data?.message || "Failed to save check-in");
     }
   };
@@ -131,6 +166,11 @@ export default function CheckInsPage() {
       learningScore: 5,
       productivityScore: 5,
       disciplineScore: 5,
+      energyLevel: "good",
+      biggestTimeWaste: "",
+      stressLevel: 5,
+      motivationLevel: 5,
+      confidenceLevel: 5,
     });
   };
 
@@ -419,6 +459,176 @@ export default function CheckInsPage() {
                 </div>
               </div>
 
+              {/* Life Reflection Section */}
+              <div className="pt-6 border-t border-gray-200">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                  📊 Life Reflection
+                </h4>
+
+                {/* Energy Level */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    How was your week?
+                  </label>
+                  <div className="grid grid-cols-4 gap-3">
+                    {[
+                      { value: "bad", emoji: "😞", label: "Bad", color: "red" },
+                      {
+                        value: "okay",
+                        emoji: "😐",
+                        label: "Okay",
+                        color: "yellow",
+                      },
+                      {
+                        value: "good",
+                        emoji: "🙂",
+                        label: "Good",
+                        color: "green",
+                      },
+                      {
+                        value: "productive",
+                        emoji: "🔥",
+                        label: "Productive",
+                        color: "indigo",
+                      },
+                    ].map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            energyLevel: option.value as any,
+                          })
+                        }
+                        className={`p-4 rounded-lg border-2 transition-all ${
+                          formData.energyLevel === option.value
+                            ? `border-${option.color}-500 bg-${option.color}-50`
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <div className="text-3xl mb-1">{option.emoji}</div>
+                        <div className="text-sm font-medium text-gray-700">
+                          {option.label}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Biggest Time Waste */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Biggest time waste this week
+                  </label>
+                  <select
+                    value={formData.biggestTimeWaste}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        biggestTimeWaste: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="">Select...</option>
+                    <option value="Instagram">Instagram</option>
+                    <option value="YouTube">YouTube</option>
+                    <option value="Gaming">Gaming</option>
+                    <option value="Oversleeping">Oversleeping</option>
+                    <option value="Netflix/Shows">Netflix/Shows</option>
+                    <option value="Unnecessary meetings">
+                      Unnecessary meetings
+                    </option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                {/* Mental State Sliders */}
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Stress Level (0-10)
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="10"
+                      step="1"
+                      value={formData.stressLevel}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          stressLevel: Number(e.target.value),
+                        })
+                      }
+                      className="w-full h-2 bg-red-200 rounded-lg appearance-none cursor-pointer accent-red-600"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>Low</span>
+                      <span className="font-semibold text-gray-900">
+                        {formData.stressLevel}
+                      </span>
+                      <span>High</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Motivation Level (0-10)
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="10"
+                      step="1"
+                      value={formData.motivationLevel}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          motivationLevel: Number(e.target.value),
+                        })
+                      }
+                      className="w-full h-2 bg-green-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>Low</span>
+                      <span className="font-semibold text-gray-900">
+                        {formData.motivationLevel}
+                      </span>
+                      <span>High</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Confidence Level (0-10)
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="10"
+                      step="1"
+                      value={formData.confidenceLevel}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          confidenceLevel: Number(e.target.value),
+                        })
+                      }
+                      className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>Low</span>
+                      <span className="font-semibold text-gray-900">
+                        {formData.confidenceLevel}
+                      </span>
+                      <span>High</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex space-x-4">
                 <button
                   type="submit"
@@ -460,6 +670,7 @@ export default function CheckInsPage() {
                   className="flex items-center space-x-2 bg-white text-indigo-600 px-4 py-2 rounded-lg hover:bg-indigo-50 border border-indigo-200"
                 >
                   <Edit2 className="w-4 h-4" />
+                  <span>Edit</span>
                 </button>
                 <div className="flex items-center space-x-2 bg-indigo-600 text-white px-4 py-2 rounded-lg">
                   <TrendingUp className="w-5 h-5" />
@@ -537,6 +748,94 @@ export default function CheckInsPage() {
                 <div className="text-sm text-gray-600">Discipline</div>
               </div>
             </div>
+
+            {/* Life Reflection Display */}
+            {(currentCheckIn.energyLevel ||
+              currentCheckIn.stressLevel !== undefined) && (
+              <div className="mt-6 pt-6 border-t border-indigo-200">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                  📊 Life Reflection
+                </h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="bg-white rounded-lg p-4">
+                    <div className="text-sm text-gray-600 mb-1">
+                      Energy Level
+                    </div>
+                    <div className="text-2xl">
+                      {currentCheckIn.energyLevel === "bad" && "😞 Bad"}
+                      {currentCheckIn.energyLevel === "okay" && "😐 Okay"}
+                      {currentCheckIn.energyLevel === "good" && "🙂 Good"}
+                      {currentCheckIn.energyLevel === "productive" &&
+                        "🔥 Productive"}
+                    </div>
+                  </div>
+                  {currentCheckIn.biggestTimeWaste && (
+                    <div className="bg-white rounded-lg p-4">
+                      <div className="text-sm text-gray-600 mb-1">
+                        Biggest Time Waste
+                      </div>
+                      <div className="font-semibold text-gray-900">
+                        {currentCheckIn.biggestTimeWaste}
+                      </div>
+                    </div>
+                  )}
+                  <div className="bg-white rounded-lg p-4">
+                    <div className="text-sm text-gray-600 mb-1">
+                      Stress Level
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="flex-1 bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-red-500 h-2 rounded-full"
+                          style={{
+                            width: `${(currentCheckIn.stressLevel / 10) * 100}%`,
+                          }}
+                        />
+                      </div>
+                      <span className="font-semibold text-gray-900">
+                        {currentCheckIn.stressLevel}/10
+                      </span>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg p-4">
+                    <div className="text-sm text-gray-600 mb-1">
+                      Motivation Level
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="flex-1 bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-green-500 h-2 rounded-full"
+                          style={{
+                            width: `${(currentCheckIn.motivationLevel / 10) * 100}%`,
+                          }}
+                        />
+                      </div>
+                      <span className="font-semibold text-gray-900">
+                        {currentCheckIn.motivationLevel}/10
+                      </span>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg p-4">
+                    <div className="text-sm text-gray-600 mb-1">
+                      Confidence Level
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="flex-1 bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-500 h-2 rounded-full"
+                          style={{
+                            width: `${(currentCheckIn.confidenceLevel / 10) * 100}%`,
+                          }}
+                        />
+                      </div>
+                      <span className="font-semibold text-gray-900">
+                        {currentCheckIn.confidenceLevel}/10
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

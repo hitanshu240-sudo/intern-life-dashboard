@@ -12,6 +12,12 @@ export interface IWeeklyCheckIn extends Document {
   productivityScore: number;
   disciplineScore: number;
   overallScore: number;
+  // Life Reflection fields
+  energyLevel?: string;
+  biggestTimeWaste?: string;
+  stressLevel?: number;
+  motivationLevel?: number;
+  confidenceLevel?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -72,6 +78,34 @@ const WeeklyCheckInSchema = new Schema<IWeeklyCheckIn>(
       min: 0,
       max: 10,
       default: 0,
+    },
+    // Life Reflection fields
+    energyLevel: {
+      type: String,
+      enum: ['bad', 'okay', 'good', 'productive'],
+      default: 'good',
+    },
+    biggestTimeWaste: {
+      type: String,
+      trim: true,
+    },
+    stressLevel: {
+      type: Number,
+      min: 0,
+      max: 10,
+      default: 5,
+    },
+    motivationLevel: {
+      type: Number,
+      min: 0,
+      max: 10,
+      default: 5,
+    },
+    confidenceLevel: {
+      type: Number,
+      min: 0,
+      max: 10,
+      default: 5,
     },
   },
   {

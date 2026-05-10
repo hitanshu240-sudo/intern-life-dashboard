@@ -31,23 +31,34 @@ export default function MoneyPage() {
     date: format(new Date(), "yyyy-MM-dd"),
   });
 
+  // Student-specific categories
   const expenseCategories = [
-    "Food",
+    // Essential
+    "Food & Groceries",
     "Transport",
-    "Shopping",
-    "Entertainment",
-    "Bills",
-    "Education",
-    "Health",
     "Rent",
+    "College Fees",
+    // Lifestyle (Impulse)
+    "Swiggy/Zomato",
+    "Coffee",
+    "Shopping",
+    "Parties",
+    // Growth
+    "Courses & Books",
+    "Software/Subscriptions",
+    // Other
+    "Health",
+    "Bills",
     "Other",
   ];
 
   const incomeCategories = [
-    "Salary",
-    "Internship",
+    "Internship Stipend",
     "Freelance",
+    "Part-time Job",
+    "Pocket Money",
     "Gift",
+    "Investment Returns",
     "Other",
   ];
 
@@ -238,6 +249,304 @@ export default function MoneyPage() {
 
             <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-6 text-white">
               <div className="flex items-center justify-between mb-4">
+                {/* Financial Health & Insights */}
+                {monthlyStats && transactions.length > 0 && (
+                  <div className="grid md:grid-cols-2 gap-6 mb-8">
+                    {/* Financial Health Score */}
+                    <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl p-6 text-white">
+                      <h3 className="text-lg font-semibold mb-4">
+                        💰 Financial Health Score
+                      </h3>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="text-5xl font-bold">
+                          {(() => {
+                            const savingsRate =
+                              monthlyStats.totalIncome > 0
+                                ? (monthlyStats.balance /
+                                    monthlyStats.totalIncome) *
+                                  100
+                                : 0;
+                            const score = Math.min(
+                              100,
+                              Math.max(
+                                0,
+                                (savingsRate > 20 ? 40 : savingsRate * 2) +
+                                  (monthlyStats.balance > 0 ? 30 : 0) +
+                                  (monthlyStats.totalExpenses <
+                                  monthlyStats.totalIncome
+                                    ? 30
+                                    : 0),
+                              ),
+                            );
+                            return Math.round(score);
+                          })()}
+                        </div>
+                        <div className="text-6xl">
+                          {(() => {
+                            const savingsRate =
+                              monthlyStats.totalIncome > 0
+                                ? (monthlyStats.balance /
+                                    monthlyStats.totalIncome) *
+                                  100
+                                : 0;
+                            const score = Math.min(
+                              100,
+                              Math.max(
+                                0,
+                                (savingsRate > 20 ? 40 : savingsRate * 2) +
+                                  (monthlyStats.balance > 0 ? 30 : 0) +
+                                  (monthlyStats.totalExpenses <
+                                  monthlyStats.totalIncome
+                                    ? 30
+                                    : 0),
+                              ),
+                            );
+                            if (score >= 80) return "🎉";
+                            if (score >= 60) return "😊";
+                            if (score >= 40) return "😐";
+                            return "😟";
+                          })()}
+                        </div>
+                      </div>
+                      <div className="space-y-2 text-sm text-purple-100">
+                        <p>
+                          ✓ Savings Rate:{" "}
+                          {monthlyStats.totalIncome > 0
+                            ? Math.round(
+                                (monthlyStats.balance /
+                                  monthlyStats.totalIncome) *
+                                  100,
+                              )
+                            : 0}
+                          %
+                        </p>
+                        <p>
+                          ✓ Balance Status:{" "}
+                          {monthlyStats.balance >= 0 ? "Positive" : "Negative"}
+                        </p>
+                        <p>
+                          ✓ Spending Control:{" "}
+                          {monthlyStats.totalExpenses < monthlyStats.totalIncome
+                            ? "Good"
+                            : "Needs Work"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Monthly Survival Meter */}
+                    <div className="bg-white rounded-xl p-6 border border-gray-200">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                        📊 Monthly Survival Meter
+                      </h3>
+                      {monthlyStats.balance > 0 ? (
+                        <>
+                          <div className="mb-4">
+                            <div className="flex justify-between text-sm text-gray-600 mb-2">
+                              <span>Money Left</span>
+                              <span className="font-semibold text-green-600">
+                                ₹{monthlyStats.balance}
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-3">
+                              <div
+                                className="bg-green-500 h-3 rounded-full transition-all"
+                                style={{
+                                  width: `${Math.min(100, (monthlyStats.balance / (monthlyStats.totalIncome || 1)) * 100)}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-2 text-sm">
+                            <p className="text-gray-700">
+                              <strong>Daily Budget:</strong> ₹
+                              {Math.round(
+                                monthlyStats.balance /
+                                  new Date(
+                                    new Date().getFullYear(),
+                                    new Date().getMonth() + 1,
+                                    0,
+                                  ).getDate(),
+                              )}
+                            </p>
+                            <p className="text-gray-700">
+                              <strong>Days Remaining:</strong>{" "}
+                              {new Date(
+                                new Date().getFullYear(),
+                                new Date().getMonth() + 1,
+                                0,
+                              ).getDate() - new Date().getDate()}{" "}
+                              days
+                            </p>
+                            {monthlyStats.totalExpenses > 0 && (
+                              <p
+                                className={`font-semibold ${
+                                  monthlyStats.balance /
+                                    (monthlyStats.totalExpenses /
+                                      new Date().getDate()) >
+                                  10
+                                    ? "text-green-600"
+                                    : monthlyStats.balance /
+                                          (monthlyStats.totalExpenses /
+                                            new Date().getDate()) >
+                                        5
+                                      ? "text-yellow-600"
+                                      : "text-red-600"
+                                }`}
+                              >
+                                {Math.round(
+                                  monthlyStats.balance /
+                                    (monthlyStats.totalExpenses /
+                                      new Date().getDate()),
+                                )}{" "}
+                                days of spending left at current rate
+                              </p>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-center py-4">
+                          <p className="text-2xl mb-2">⚠️</p>
+                          <p className="text-red-600 font-semibold">
+                            Overspent this month!
+                          </p>
+                          <p className="text-sm text-gray-600 mt-2">
+                            Balance: ₹{monthlyStats.balance}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Smart Insights */}
+                {transactions.length > 0 && (
+                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200 mb-8">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      💡 Smart Insights
+                    </h3>
+                    <div className="space-y-3">
+                      {(() => {
+                        const impulseCategories = [
+                          "Swiggy/Zomato",
+                          "Coffee",
+                          "Shopping",
+                          "Parties",
+                        ];
+                        const impulseSpending = transactions
+                          .filter(
+                            (t) =>
+                              t.type === "expense" &&
+                              impulseCategories.includes(t.category),
+                          )
+                          .reduce((sum, t) => sum + t.amount, 0);
+                        const totalExpenses = transactions
+                          .filter((t) => t.type === "expense")
+                          .reduce((sum, t) => sum + t.amount, 0);
+
+                        const insights = [];
+
+                        if (impulseSpending > 0 && totalExpenses > 0) {
+                          const impulsePercent = Math.round(
+                            (impulseSpending / totalExpenses) * 100,
+                          );
+                          if (impulsePercent > 30) {
+                            insights.push(
+                              <p
+                                key="impulse"
+                                className="text-gray-700 flex items-start space-x-2"
+                              >
+                                <span className="text-xl">🍕</span>
+                                <span>
+                                  <strong>High impulse spending:</strong> You
+                                  spent {impulsePercent}% (₹{impulseSpending})
+                                  on food delivery, coffee, and parties this
+                                  month.
+                                </span>
+                              </p>,
+                            );
+                          }
+                        }
+
+                        if (monthlyStats && monthlyStats.balance < 0) {
+                          insights.push(
+                            <p
+                              key="negative"
+                              className="text-gray-700 flex items-start space-x-2"
+                            >
+                              <span className="text-xl">⚠️</span>
+                              <span>
+                                <strong>Overspending alert:</strong> You've
+                                spent ₹{Math.abs(monthlyStats.balance)} more
+                                than you earned this month.
+                              </span>
+                            </p>,
+                          );
+                        } else if (
+                          monthlyStats &&
+                          monthlyStats.balance > monthlyStats.totalIncome * 0.3
+                        ) {
+                          insights.push(
+                            <p
+                              key="saving"
+                              className="text-gray-700 flex items-start space-x-2"
+                            >
+                              <span className="text-xl">🎉</span>
+                              <span>
+                                <strong>Great savings!</strong> You've saved{" "}
+                                {Math.round(
+                                  (monthlyStats.balance /
+                                    monthlyStats.totalIncome) *
+                                    100,
+                                )}
+                                % of your income this month.
+                              </span>
+                            </p>,
+                          );
+                        }
+
+                        const foodSpending = transactions
+                          .filter(
+                            (t) =>
+                              t.type === "expense" &&
+                              (t.category === "Swiggy/Zomato" ||
+                                t.category === "Food & Groceries"),
+                          )
+                          .reduce((sum, t) => sum + t.amount, 0);
+                        if (foodSpending > totalExpenses * 0.4) {
+                          insights.push(
+                            <p
+                              key="food"
+                              className="text-gray-700 flex items-start space-x-2"
+                            >
+                              <span className="text-xl">🍽️</span>
+                              <span>
+                                <strong>Food spending high:</strong>{" "}
+                                {Math.round(
+                                  (foodSpending / totalExpenses) * 100,
+                                )}
+                                % of expenses are food-related (₹{foodSpending}
+                                ).
+                              </span>
+                            </p>,
+                          );
+                        }
+
+                        return insights.length > 0 ? (
+                          insights
+                        ) : (
+                          <p className="text-gray-700 flex items-start space-x-2">
+                            <span className="text-xl">✨</span>
+                            <span>
+                              Looking good! Keep tracking your expenses to get
+                              personalized insights.
+                            </span>
+                          </p>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                )}
+
                 <Wallet className="w-8 h-8" />
               </div>
               <h3 className="text-lg font-semibold mb-1">Balance</h3>
@@ -272,7 +581,7 @@ export default function MoneyPage() {
                         category: "",
                       })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    className="w-full text-gray-400 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="income">Income</option>
                     <option value="expense">Expense</option>
@@ -292,7 +601,7 @@ export default function MoneyPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, amount: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    className="w-full px-4 py-2 placeholder-gray-400 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                     placeholder="0.00"
                   />
                 </div>
@@ -307,7 +616,7 @@ export default function MoneyPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, category: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    className="w-full text-gray-400 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="">Select category</option>
                     {(formData.type === "income"
@@ -332,7 +641,7 @@ export default function MoneyPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, date: e.target.value })
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    className="w-full text-gray-400 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                   />
                 </div>
               </div>
@@ -347,7 +656,7 @@ export default function MoneyPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  className="w-full text-gray-400  px-4 py-2 border placeholder-gray-400 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                   placeholder="Add a note..."
                 />
               </div>
